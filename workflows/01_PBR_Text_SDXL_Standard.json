@@ -1,0 +1,1351 @@
+{
+ "id": "01_PBR_Text_SDXL_Standard",
+ "revision": 0,
+ "last_node_id": 104,
+ "last_link_id": 34,
+ "nodes": [
+  {
+   "id": 100,
+   "type": "Note",
+   "pos": [
+    40,
+    -780
+   ],
+   "size": [
+    700,
+    720
+   ],
+   "flags": {},
+   "order": 25,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "Note"
+   },
+   "widgets_values": [
+    "01 TEXT TO PBR (SDXL, STANDARD)\n\nWHAT IT DOES\nType a material -> SDXL makes a TILEABLE image (circular padding in the model and VAE) -> de-light -> height, normal, AO, roughness, metallic, ORM. Fast, runs on 8 GB VRAM.\n\nQUICK START\n1. Edit the Positive Prompt (change the MATERIAL).\n2. Queue (Ctrl+Enter). Check the 3x3 Tiling Check, then collect the maps (ComfyUI/output/PBR_Material/).\n3. Seams? New seed. Light left in? Raise De-light strength.\n\nSETUP (one time)\n\n1. ComfyUI (latest): https://github.com/comfyanonymous/ComfyUI\n\n2. PBR Studio Nodes (INCLUDED): copy folder custom_nodes/PBR_Studio_Nodes into ComfyUI/custom_nodes/\n   (or run install_pbr_studio.py, see START_HERE.md). Test prompts and sample images: examples/TEST_PROMPTS.md. No extra pip packages.\n\n3. Depth Anything V2 node (height maps)\n   cd ComfyUI/custom_nodes\n   git clone https://github.com/kijai/ComfyUI-DepthAnythingV2\n   pip install -r ComfyUI-DepthAnythingV2/requirements.txt   (use ComfyUI's own Python)\n   Model (99 MB) auto-downloads to ComfyUI/models/depthanything/ on first run. Manual:\n   https://huggingface.co/Kijai/DepthAnythingV2-safetensors/resolve/main/depth_anything_v2_vits_fp32.safetensors\n\n4. Seamless Tiling node (GPL-3.0, you install it, it is not redistributed here)\n   cd ComfyUI/custom_nodes\n   git clone https://github.com/spinagon/ComfyUI-seamless-tiling\n\n5. SDXL checkpoint -> ComfyUI/models/checkpoints/\n   https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors\n\nThen restart ComfyUI, load this workflow, press R to refresh models. Red nodes? Manager > Install Missing Custom Nodes.\n\nOUTPUT: see QUICK START above.\n\nIMPORT INTO YOUR ENGINE\nBlender: Albedo -> Base Color (sRGB). Normal -> Normal Map node (OpenGL), Non-Color. Roughness/Metallic -> Non-Color. Height -> Displacement node.\nUnreal: Normal format = DIRECTX in node \"Normal Map\". ORM texture: sRGB OFF, compression \"Masks\": R=AO, G=Roughness, B=Metallic.\n3ds Max / V-Ray / Corona: DirectX normal; Roughness and Metallic as non-color maps.\nUnity URP / glTF: OpenGL normal. (Unity HDRP uses its own mask-map layout, not ORM.)\nNormal looks inverted? Switch OpenGL <-> DirectX in the Normal Map node."
+   ],
+   "title": "READ ME FIRST: 01 TEXT to PBR (SDXL, Standard)",
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 101,
+   "type": "Note",
+   "pos": [
+    780,
+    -780
+   ],
+   "size": [
+    560,
+    720
+   ],
+   "flags": {},
+   "order": 26,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "Note"
+   },
+   "widgets_values": [
+    "Workflow 01: keep the wording, change only [MATERIAL].\nWorkflow 05: type just the material, one per line. The picker adds the wording for you.\n\nFULL PROMPT (01):\nphotograph of [MATERIAL], seamless tileable PBR texture scan, top-down orthographic view, flat overcast diffuse lighting, no shadows, photorealistic real-world material, natural imperfections, high detail, sharp focus, 8k\n\nTESTED MATERIALS (surface setting in brackets):\nweathered red brick wall with grey mortar (rough) | mossy cobblestone pavement (rough) | travertine stone wall (rough) | rough grey concrete with small pits (rough) | dry cracked desert soil (rough) | asphalt with fine gravel (rough) | grey granite floor tiles (rough) | rusty corroded metal plate (rough, Metallic: bright_areas_only) | dark oak wood planks (flat) | light birch plywood (flat) | weathered teak decking boards (flat) | beige linen fabric weave (flat) | rough off-white plaster wall (flat) | white marble with grey veins (polished)\n\nDid not look realistic in tests: leather, terracotta roof tiles, clay ground. Use a photo (workflow 02) for those.\nFull list and sample images: examples/TEST_PROMPTS.md"
+   ],
+   "title": "Material Presets & Prompt Styles",
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 102,
+   "type": "Note",
+   "pos": [
+    1380,
+    -780
+   ],
+   "size": [
+    560,
+    720
+   ],
+   "flags": {},
+   "order": 27,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "Note"
+   },
+   "widgets_values": [
+    "KEY SETTINGS\n- De-light: strength 0.9, light_scale 0.12 (lower = removes smaller shadows), shadow_highlight_compress 0.35.\n- Height: depth_weight = big shapes, detail_weight = fine detail from the albedo.\n- Height (v2.1): set 'surface' in the Height Map node: rough (stone, brick, concrete), flat (wood, fabric, plaster) or polished (marble, glazed tile, chrome) for near-flat relief. 'auto' reads the material name in batch mode and otherwise fades out depth that does not follow the texture.\n- Normal: strength 1.5 (raise for deeper relief). Pick OpenGL or DirectX.\n- AO radius 0.01 / strength 1.0.  Roughness: base 0.65, variation 0.25 (invert flips bright/dark).\n- Metallic: constant 0.0 or 1.0.\n\nTROUBLESHOOTING\n- Red nodes: copy PBR_Studio_Nodes, install Depth Anything / Seamless Tiling, restart ComfyUI, press R.\n- Seams visible: new seed, or (photo) lower blend_overlap,.\n- Normal map inverted in your engine: switch OpenGL <-> DirectX.\n- Height noisy: lower detail_weight or raise Normal smooth_px.\n- Out of VRAM: close other GPU apps, or use 768 px resolution.\n\nHONEST NOTES\n- Height, AO and roughness are image-based ESTIMATES, great for ArchViz, games and previews, not scan-accurate.\n- De-lighting is a heuristic: it removes large light variations and compresses shadows. Hard baked shadows may remain.\n- Metallic is 0 by default (non-metal). For metal set the Metallic node: constant 1.0, or bright_areas_only for rusty/painted metal.\n- Check every model's license before commercial use."
+   ],
+   "title": "Settings, Troubleshooting & Honest Notes",
+   "color": "#432",
+   "bgcolor": "#653"
+  },
+  {
+   "id": 10,
+   "type": "CheckpointLoaderSimple",
+   "pos": [
+    40,
+    60
+   ],
+   "size": [
+    340,
+    100
+   ],
+   "flags": {},
+   "order": 0,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "MODEL",
+     "type": "MODEL",
+     "links": [
+      1
+     ],
+     "slot_index": 0
+    },
+    {
+     "name": "CLIP",
+     "type": "CLIP",
+     "links": [
+      2,
+      3
+     ],
+     "slot_index": 1
+    },
+    {
+     "name": "VAE",
+     "type": "VAE",
+     "links": [
+      9
+     ],
+     "slot_index": 2
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "CheckpointLoaderSimple"
+   },
+   "widgets_values": [
+    "sd_xl_base_1.0.safetensors"
+   ],
+   "title": "1. SDXL Checkpoint"
+  },
+  {
+   "id": 11,
+   "type": "SeamlessTile",
+   "pos": [
+    40,
+    200
+   ],
+   "size": [
+    340,
+    110
+   ],
+   "flags": {},
+   "order": 1,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "model",
+     "type": "MODEL",
+     "link": 1
+    }
+   ],
+   "outputs": [
+    {
+     "name": "MODEL",
+     "type": "MODEL",
+     "links": [
+      4
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "SeamlessTile"
+   },
+   "widgets_values": [
+    "enable",
+    "Modify in place"
+   ],
+   "title": "Make Model Tileable (circular padding)"
+  },
+  {
+   "id": 14,
+   "type": "EmptyLatentImage",
+   "pos": [
+    40,
+    350
+   ],
+   "size": [
+    340,
+    120
+   ],
+   "flags": {},
+   "order": 4,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "LATENT",
+     "type": "LATENT",
+     "links": [
+      7
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "EmptyLatentImage"
+   },
+   "widgets_values": [
+    1024,
+    1024,
+    1
+   ],
+   "title": "Resolution (square, 1024)"
+  },
+  {
+   "id": 12,
+   "type": "CLIPTextEncode",
+   "pos": [
+    420,
+    60
+   ],
+   "size": [
+    460,
+    220
+   ],
+   "flags": {},
+   "order": 2,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "clip",
+     "type": "CLIP",
+     "link": 2
+    }
+   ],
+   "outputs": [
+    {
+     "name": "CONDITIONING",
+     "type": "CONDITIONING",
+     "links": [
+      5
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "CLIPTextEncode"
+   },
+   "widgets_values": [
+    "photograph of weathered red brick wall with grey mortar, seamless tileable PBR texture scan, top-down orthographic view, flat overcast diffuse lighting, no shadows, photorealistic real-world material, natural imperfections, high detail, sharp focus, 8k"
+   ],
+   "title": "Positive Prompt (change the MATERIAL)",
+   "color": "#232",
+   "bgcolor": "#353"
+  },
+  {
+   "id": 13,
+   "type": "CLIPTextEncode",
+   "pos": [
+    420,
+    320
+   ],
+   "size": [
+    460,
+    150
+   ],
+   "flags": {},
+   "order": 3,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "clip",
+     "type": "CLIP",
+     "link": 3
+    }
+   ],
+   "outputs": [
+    {
+     "name": "CONDITIONING",
+     "type": "CONDITIONING",
+     "links": [
+      6
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "CLIPTextEncode"
+   },
+   "widgets_values": [
+    "shadows, directional light, strong highlights, specular reflections, perspective, vignette, border, frame, text, watermark, objects, people, blurry, low quality, cartoon, illustration, painting, drawing, vector art, stylized, 3d render, cgi, plastic, clay, toy, flat colors, outlines, oversaturated"
+   ],
+   "title": "Negative Prompt (no light/shadow)",
+   "color": "#322",
+   "bgcolor": "#533"
+  },
+  {
+   "id": 15,
+   "type": "KSampler",
+   "pos": [
+    920,
+    60
+   ],
+   "size": [
+    300,
+    290
+   ],
+   "flags": {},
+   "order": 5,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "model",
+     "type": "MODEL",
+     "link": 4
+    },
+    {
+     "name": "positive",
+     "type": "CONDITIONING",
+     "link": 5
+    },
+    {
+     "name": "negative",
+     "type": "CONDITIONING",
+     "link": 6
+    },
+    {
+     "name": "latent_image",
+     "type": "LATENT",
+     "link": 7
+    }
+   ],
+   "outputs": [
+    {
+     "name": "LATENT",
+     "type": "LATENT",
+     "links": [
+      8
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "KSampler"
+   },
+   "widgets_values": [
+    424242,
+    "randomize",
+    30,
+    6.5,
+    "dpmpp_2m",
+    "karras",
+    1.0
+   ],
+   "title": "2. Generate Tileable Texture"
+  },
+  {
+   "id": 16,
+   "type": "CircularVAEDecode",
+   "pos": [
+    920,
+    390
+   ],
+   "size": [
+    300,
+    100
+   ],
+   "flags": {},
+   "order": 6,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "samples",
+     "type": "LATENT",
+     "link": 8
+    },
+    {
+     "name": "vae",
+     "type": "VAE",
+     "link": 9
+    }
+   ],
+   "outputs": [
+    {
+     "name": "IMAGE",
+     "type": "IMAGE",
+     "links": [
+      10
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "CircularVAEDecode"
+   },
+   "widgets_values": [
+    "enable"
+   ],
+   "title": "Tileable VAE Decode"
+  },
+  {
+   "id": 25,
+   "type": "PBR_Delight",
+   "pos": [
+    1300,
+    60
+   ],
+   "size": [
+    340,
+    150
+   ],
+   "flags": {},
+   "order": 7,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "image",
+     "type": "IMAGE",
+     "link": 10
+    }
+   ],
+   "outputs": [
+    {
+     "name": "albedo",
+     "type": "IMAGE",
+     "links": [
+      11,
+      13,
+      15,
+      19,
+      20,
+      24
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_Delight"
+   },
+   "widgets_values": [
+    0.9,
+    0.12,
+    0.35
+   ],
+   "title": "De-light  ->  ALBEDO"
+  },
+  {
+   "id": 26,
+   "type": "DownloadAndLoadDepthAnythingV2Model",
+   "pos": [
+    1300,
+    260
+   ],
+   "size": [
+    340,
+    110
+   ],
+   "flags": {},
+   "order": 8,
+   "mode": 0,
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "da_v2_model",
+     "type": "DAMODEL",
+     "links": [
+      12
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "DownloadAndLoadDepthAnythingV2Model"
+   },
+   "widgets_values": [
+    "depth_anything_v2_vits_fp32.safetensors",
+    "auto"
+   ],
+   "title": "Depth Anything V2 (Small)"
+  },
+  {
+   "id": 27,
+   "type": "DepthAnything_V2",
+   "pos": [
+    1300,
+    410
+   ],
+   "size": [
+    340,
+    70
+   ],
+   "flags": {},
+   "order": 9,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "da_model",
+     "type": "DAMODEL",
+     "link": 12
+    },
+    {
+     "name": "images",
+     "type": "IMAGE",
+     "link": 31
+    }
+   ],
+   "outputs": [
+    {
+     "name": "image",
+     "type": "IMAGE",
+     "links": [
+      16
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "DepthAnything_V2"
+   },
+   "widgets_values": [],
+   "title": "Estimate Depth"
+  },
+  {
+   "id": 28,
+   "type": "PBR_TilePreview",
+   "pos": [
+    1680,
+    60
+   ],
+   "size": [
+    300,
+    80
+   ],
+   "flags": {},
+   "order": 10,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "image",
+     "type": "IMAGE",
+     "link": 13
+    }
+   ],
+   "outputs": [
+    {
+     "name": "tiled_preview",
+     "type": "IMAGE",
+     "links": [
+      14
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_TilePreview"
+   },
+   "widgets_values": [
+    3
+   ],
+   "title": "Tiling Check 3x3"
+  },
+  {
+   "id": 29,
+   "type": "PreviewImage",
+   "pos": [
+    1680,
+    180
+   ],
+   "size": [
+    420,
+    420
+   ],
+   "flags": {},
+   "order": 11,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "images",
+     "type": "IMAGE",
+     "link": 14
+    }
+   ],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "PreviewImage"
+   },
+   "widgets_values": [],
+   "title": "Tiling Check (look for seams)"
+  },
+  {
+   "id": 30,
+   "type": "PBR_Height",
+   "pos": [
+    2140,
+    60
+   ],
+   "size": [
+    340,
+    270
+   ],
+   "flags": {},
+   "order": 12,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "albedo",
+     "type": "IMAGE",
+     "link": 15
+    },
+    {
+     "name": "depth",
+     "type": "IMAGE",
+     "link": 32
+    }
+   ],
+   "outputs": [
+    {
+     "name": "height",
+     "type": "IMAGE",
+     "links": [
+      17,
+      18,
+      26
+     ],
+     "slot_index": 0
+    },
+    {
+     "name": "relief",
+     "type": "FLOAT",
+     "links": [
+      33,
+      34
+     ]
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_Height"
+   },
+   "widgets_values": [
+    1.0,
+    0.6,
+    0.01,
+    0.04,
+    false,
+    true,
+    true,
+    "auto"
+   ],
+   "title": "Height Map"
+  },
+  {
+   "id": 31,
+   "type": "PBR_Normal",
+   "pos": [
+    2140,
+    380
+   ],
+   "size": [
+    340,
+    150
+   ],
+   "flags": {},
+   "order": 13,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "height",
+     "type": "IMAGE",
+     "link": 17
+    },
+    {
+     "name": "relief",
+     "type": "FLOAT",
+     "link": 33
+    }
+   ],
+   "outputs": [
+    {
+     "name": "normal",
+     "type": "IMAGE",
+     "links": [
+      25
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_Normal"
+   },
+   "widgets_values": [
+    1.5,
+    "OpenGL (Blender, Unity, glTF)",
+    1.0
+   ],
+   "title": "Normal Map (pick OpenGL / DirectX)"
+  },
+  {
+   "id": 32,
+   "type": "PBR_AmbientOcclusion",
+   "pos": [
+    2520,
+    60
+   ],
+   "size": [
+    340,
+    110
+   ],
+   "flags": {},
+   "order": 14,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "height",
+     "type": "IMAGE",
+     "link": 18
+    },
+    {
+     "name": "relief",
+     "type": "FLOAT",
+     "link": 34
+    }
+   ],
+   "outputs": [
+    {
+     "name": "ambient_occlusion",
+     "type": "IMAGE",
+     "links": [
+      21,
+      27
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_AmbientOcclusion"
+   },
+   "widgets_values": [
+    0.01,
+    1.0
+   ],
+   "title": "Ambient Occlusion"
+  },
+  {
+   "id": 33,
+   "type": "PBR_Roughness",
+   "pos": [
+    2520,
+    210
+   ],
+   "size": [
+    340,
+    150
+   ],
+   "flags": {},
+   "order": 15,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "albedo",
+     "type": "IMAGE",
+     "link": 19
+    }
+   ],
+   "outputs": [
+    {
+     "name": "roughness",
+     "type": "IMAGE",
+     "links": [
+      22,
+      28
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_Roughness"
+   },
+   "widgets_values": [
+    0.65,
+    0.25,
+    false
+   ],
+   "title": "Roughness"
+  },
+  {
+   "id": 34,
+   "type": "PBR_Metallic",
+   "pos": [
+    2520,
+    400
+   ],
+   "size": [
+    340,
+    190
+   ],
+   "flags": {},
+   "order": 16,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "albedo",
+     "type": "IMAGE",
+     "link": 20
+    }
+   ],
+   "outputs": [
+    {
+     "name": "metallic",
+     "type": "IMAGE",
+     "links": [
+      23,
+      29
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_Metallic"
+   },
+   "widgets_values": [
+    "constant",
+    0.0,
+    0.6,
+    0.1
+   ],
+   "title": "Metallic (0 = non-metal, 1 = metal)"
+  },
+  {
+   "id": 35,
+   "type": "PBR_PackORM",
+   "pos": [
+    2520,
+    630
+   ],
+   "size": [
+    340,
+    90
+   ],
+   "flags": {},
+   "order": 17,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "ambient_occlusion",
+     "type": "IMAGE",
+     "link": 21
+    },
+    {
+     "name": "roughness",
+     "type": "IMAGE",
+     "link": 22
+    },
+    {
+     "name": "metallic",
+     "type": "IMAGE",
+     "link": 23
+    }
+   ],
+   "outputs": [
+    {
+     "name": "ORM",
+     "type": "IMAGE",
+     "links": [
+      30
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_PackORM"
+   },
+   "widgets_values": [],
+   "title": "Pack ORM (R=AO G=Rough B=Metal)"
+  },
+  {
+   "id": 40,
+   "type": "PBR_SaveMaterial",
+   "pos": [
+    2920,
+    60
+   ],
+   "size": [
+    340,
+    330
+   ],
+   "flags": {},
+   "order": 18,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "albedo",
+     "type": "IMAGE",
+     "link": 24
+    },
+    {
+     "name": "normal",
+     "type": "IMAGE",
+     "link": 25
+    },
+    {
+     "name": "height",
+     "type": "IMAGE",
+     "link": 26
+    },
+    {
+     "name": "ambient_occlusion",
+     "type": "IMAGE",
+     "link": 27
+    },
+    {
+     "name": "roughness",
+     "type": "IMAGE",
+     "link": 28
+    },
+    {
+     "name": "metallic",
+     "type": "IMAGE",
+     "link": 29
+    },
+    {
+     "name": "orm",
+     "type": "IMAGE",
+     "link": 30
+    }
+   ],
+   "outputs": [],
+   "properties": {
+    "Node name for S&R": "PBR_SaveMaterial"
+   },
+   "widgets_values": [
+    "PBR_Material",
+    "material",
+    true
+   ],
+   "title": "SAVE whole material set (named folder, 16-bit height)"
+  },
+  {
+   "id": 103,
+   "type": "PBR_WrapPad",
+   "pos": [
+    1300,
+    290
+   ],
+   "size": [
+    260,
+    60
+   ],
+   "flags": {},
+   "order": 9,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "image",
+     "type": "IMAGE",
+     "link": 11
+    }
+   ],
+   "outputs": [
+    {
+     "name": "padded",
+     "type": "IMAGE",
+     "links": [
+      31
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_WrapPad"
+   },
+   "widgets_values": [
+    96
+   ],
+   "title": "Depth: wrap pad (seamless depth edges)"
+  },
+  {
+   "id": 104,
+   "type": "PBR_WrapCrop",
+   "pos": [
+    1300,
+    550
+   ],
+   "size": [
+    260,
+    80
+   ],
+   "flags": {},
+   "order": 10,
+   "mode": 0,
+   "inputs": [
+    {
+     "name": "image",
+     "type": "IMAGE",
+     "link": 16
+    }
+   ],
+   "outputs": [
+    {
+     "name": "cropped",
+     "type": "IMAGE",
+     "links": [
+      32
+     ],
+     "slot_index": 0
+    }
+   ],
+   "properties": {
+    "Node name for S&R": "PBR_WrapCrop"
+   },
+   "widgets_values": [
+    96,
+    1
+   ],
+   "title": "Depth: wrap crop"
+  }
+ ],
+ "links": [
+  [
+   1,
+   10,
+   0,
+   11,
+   0,
+   "MODEL"
+  ],
+  [
+   2,
+   10,
+   1,
+   12,
+   0,
+   "CLIP"
+  ],
+  [
+   3,
+   10,
+   1,
+   13,
+   0,
+   "CLIP"
+  ],
+  [
+   4,
+   11,
+   0,
+   15,
+   0,
+   "MODEL"
+  ],
+  [
+   5,
+   12,
+   0,
+   15,
+   1,
+   "CONDITIONING"
+  ],
+  [
+   6,
+   13,
+   0,
+   15,
+   2,
+   "CONDITIONING"
+  ],
+  [
+   7,
+   14,
+   0,
+   15,
+   3,
+   "LATENT"
+  ],
+  [
+   8,
+   15,
+   0,
+   16,
+   0,
+   "LATENT"
+  ],
+  [
+   9,
+   10,
+   2,
+   16,
+   1,
+   "VAE"
+  ],
+  [
+   10,
+   16,
+   0,
+   25,
+   0,
+   "IMAGE"
+  ],
+  [
+   11,
+   25,
+   0,
+   103,
+   0,
+   "IMAGE"
+  ],
+  [
+   12,
+   26,
+   0,
+   27,
+   0,
+   "DAMODEL"
+  ],
+  [
+   13,
+   25,
+   0,
+   28,
+   0,
+   "IMAGE"
+  ],
+  [
+   14,
+   28,
+   0,
+   29,
+   0,
+   "IMAGE"
+  ],
+  [
+   15,
+   25,
+   0,
+   30,
+   0,
+   "IMAGE"
+  ],
+  [
+   16,
+   27,
+   0,
+   104,
+   0,
+   "IMAGE"
+  ],
+  [
+   17,
+   30,
+   0,
+   31,
+   0,
+   "IMAGE"
+  ],
+  [
+   18,
+   30,
+   0,
+   32,
+   0,
+   "IMAGE"
+  ],
+  [
+   19,
+   25,
+   0,
+   33,
+   0,
+   "IMAGE"
+  ],
+  [
+   20,
+   25,
+   0,
+   34,
+   0,
+   "IMAGE"
+  ],
+  [
+   21,
+   32,
+   0,
+   35,
+   0,
+   "IMAGE"
+  ],
+  [
+   22,
+   33,
+   0,
+   35,
+   1,
+   "IMAGE"
+  ],
+  [
+   23,
+   34,
+   0,
+   35,
+   2,
+   "IMAGE"
+  ],
+  [
+   24,
+   25,
+   0,
+   40,
+   0,
+   "IMAGE"
+  ],
+  [
+   25,
+   31,
+   0,
+   40,
+   1,
+   "IMAGE"
+  ],
+  [
+   26,
+   30,
+   0,
+   40,
+   2,
+   "IMAGE"
+  ],
+  [
+   27,
+   32,
+   0,
+   40,
+   3,
+   "IMAGE"
+  ],
+  [
+   28,
+   33,
+   0,
+   40,
+   4,
+   "IMAGE"
+  ],
+  [
+   29,
+   34,
+   0,
+   40,
+   5,
+   "IMAGE"
+  ],
+  [
+   30,
+   35,
+   0,
+   40,
+   6,
+   "IMAGE"
+  ],
+  [
+   31,
+   103,
+   0,
+   27,
+   1,
+   "IMAGE"
+  ],
+  [
+   32,
+   104,
+   0,
+   30,
+   1,
+   "IMAGE"
+  ],
+  [
+   33,
+   30,
+   1,
+   31,
+   1,
+   "FLOAT"
+  ],
+  [
+   34,
+   30,
+   1,
+   32,
+   1,
+   "FLOAT"
+  ]
+ ],
+ "groups": [
+  {
+   "id": 1,
+   "title": "STEP 1: Generate a tileable texture (SDXL)",
+   "bounding": [
+    20,
+    0,
+    1240,
+    560
+   ],
+   "color": "#3f789e",
+   "font_size": 24,
+   "flags": {}
+  },
+  {
+   "id": 2,
+   "title": "STEP 2: Remove baked light, estimate depth",
+   "bounding": [
+    1280,
+    0,
+    860,
+    640
+   ],
+   "color": "#8A8",
+   "font_size": 24,
+   "flags": {}
+  },
+  {
+   "id": 3,
+   "title": "STEP 3: Build PBR maps",
+   "bounding": [
+    2120,
+    0,
+    780,
+    760
+   ],
+   "color": "#a1309b",
+   "font_size": 24,
+   "flags": {}
+  },
+  {
+   "id": 4,
+   "title": "STEP 4: Saved maps (ComfyUI/output/PBR_Material)",
+   "bounding": [
+    2900,
+    0,
+    1400,
+    880
+   ],
+   "color": "#b58b2a",
+   "font_size": 24,
+   "flags": {}
+  }
+ ],
+ "config": {},
+ "extra": {
+  "ds": {
+   "scale": 0.4,
+   "offset": [
+    60,
+    760
+   ]
+  }
+ },
+ "version": 0.4
+}
