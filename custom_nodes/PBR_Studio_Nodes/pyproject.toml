@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-pbr-studio"
 description = "Tile-safe helper nodes for making seamless PBR materials in ComfyUI: de-light, height from depth + albedo, normal (GL/DX), AO, roughness, metallic, ORM packing and engine-ready saving."
-version = "2.1.0"
+version = "2.1.1"
 license = { text = "Free for personal and commercial use. Do not resell or redistribute; link to https://github.com/texelforgestudio-prog/pbr-studio-free instead." }
 dependencies = []
 

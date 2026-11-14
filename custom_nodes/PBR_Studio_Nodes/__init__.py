@@ -271,9 +271,11 @@ def _out_dir():
 
 
 def _unique_dir(base, name):
-    d = os.path.join(base, name); k = 1
+    d = os.path.join(base, name)
+    k = 1
     while os.path.exists(os.path.join(d, name + "_BaseColor.png")):
-        k += 1; d = os.path.join(base, "%s_%d" % (name, k))
+        k += 1
+        d = os.path.join(base, "%s_%d" % (name, k))
     return d
 
 
@@ -474,9 +476,12 @@ class PBR_SeamRepairPrep:
     CATEGORY = CATEGORY
 
     def run(self, image, band_width, softness):
-        a = _to_np(image); imgs, masks = [], []
+        a = _to_np(image)
+        imgs, masks = [], []
         for b in range(a.shape[0]):
-            r, m = seam_cross(a[b], band_width, softness); imgs.append(r); masks.append(m)
+            r, m = seam_cross(a[b], band_width, softness)
+            imgs.append(r)
+            masks.append(m)
         return (_to_t(np.stack(imgs)), _to_t(np.stack(masks)))
 
 
