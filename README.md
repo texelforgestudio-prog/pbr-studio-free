@@ -8,6 +8,10 @@ Runs on an 8 GB GPU (~30 s per material on an RTX 5060 Laptop).
 <img src="docs/demo.gif" width="320"> <img src="docs/maps.jpg" width="320">
 </p>
 
+**Get it:** [Download free on Gumroad](https://texelforge.gumroad.com/l/pbr-studio-free) (enter $0, get update emails) · or clone this repo · or install the nodes from ComfyUI Manager ("PBR Studio Nodes").
+
+**Pro version:** [PBR Studio Complete](https://texelforge.gumroad.com/l/pbr-studio) adds Photo to PBR, Batch (a whole library from a list) and a tile-safe 4K upgrade.
+
 ## How it works
 1. **Tileable image.** SDXL tiles through circular padding in the model and the VAE.
 2. **De-light.** Removes large-scale light and compresses shadows and highlights → BaseColor.
