@@ -1,0 +1,22 @@
+name: Publish nodes to Comfy Registry
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["custom_nodes/PBR_Studio_Nodes/pyproject.toml"]
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'texelforgestudio-prog' }}
+    defaults:
+      run:
+        working-directory: custom_nodes/PBR_Studio_Nodes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install comfy-cli
+      - run: comfy --skip-prompt --no-enable-telemetry node publish --token "${{ secrets.REGISTRY_ACCESS_TOKEN }}"
