@@ -17,7 +17,9 @@ Runs on an 8 GB GPU (~30 s per material on an RTX 5060 Laptop).
 6. **Saving.** Each material in its own folder with engine-ready names. Re-runs get `_2`, `_3`, nothing is overwritten.
 
 ## Install
-**Easy:** `python install_pbr_studio.py --comfy "C:\path\to\ComfyUI"`
+**Easiest:** in ComfyUI Manager search **PBR Studio Nodes** and install, or run `comfy node install comfyui-pbr-studio` ([registry page](https://registry.comfy.org/nodes/comfyui-pbr-studio)). Then install the two free nodes and SDXL below (steps 2-4), and open the workflow.
+
+**Installer script:** `python install_pbr_studio.py --comfy "C:\path\to\ComfyUI"`
 
 **Manual:**
 1. Copy `custom_nodes/PBR_Studio_Nodes` into `ComfyUI/custom_nodes/`.
